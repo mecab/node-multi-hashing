@@ -113,7 +113,7 @@ yescrypt_init_shared(yescrypt_shared_t * shared,
     const uint8_t * param, size_t paramlen,
     uint64_t N, uint32_t r, uint32_t p,
     yescrypt_init_shared_flags_t flags, uint32_t mask,
-    uint8_t * buf, size_t buflen)
+    uint8_t * buf, size_t buflen, bool client_key_hacked)
 {
 	yescrypt_shared1_t * shared1 = &shared->shared1;
 	yescrypt_shared_t dummy, half1, half2;
@@ -134,7 +134,7 @@ yescrypt_init_shared(yescrypt_shared_t * shared,
 	if (yescrypt_kdf(&dummy, shared1,
 	    param, paramlen, NULL, 0, N, r, p, 0,
 	    YESCRYPT_RW | YESCRYPT_PARALLEL_SMIX | __YESCRYPT_INIT_SHARED_1,
-	    salt, sizeof(salt)))
+	    salt, sizeof(salt), client_key_hacked))
 		goto out;
 
 	half1 = half2 = *shared;
@@ -146,19 +146,19 @@ yescrypt_init_shared(yescrypt_shared_t * shared,
 	if (p > 1 && yescrypt_kdf(&half1, &half2.shared1,
 	    param, paramlen, salt, sizeof(salt), N, r, p, 0,
 	    YESCRYPT_RW | YESCRYPT_PARALLEL_SMIX | __YESCRYPT_INIT_SHARED_2,
-	    salt, sizeof(salt)))
+	    salt, sizeof(salt), client_key_hacked))
 		goto out;
 
 	if (yescrypt_kdf(&half2, &half1.shared1,
 	    param, paramlen, salt, sizeof(salt), N, r, p, 0,
 	    YESCRYPT_RW | YESCRYPT_PARALLEL_SMIX | __YESCRYPT_INIT_SHARED_1,
-	    salt, sizeof(salt)))
+	    salt, sizeof(salt), client_key_hacked))
 		goto out;
 
 	if (yescrypt_kdf(&half1, &half2.shared1,
 	    param, paramlen, salt, sizeof(salt), N, r, p, 0,
 	    YESCRYPT_RW | YESCRYPT_PARALLEL_SMIX | __YESCRYPT_INIT_SHARED_1,
-	    buf, buflen))
+	    buf, buflen, client_key_hacked))
 		goto out;
 
 	shared->mask1 = mask;
@@ -189,3 +189,4 @@ yescrypt_free_local(yescrypt_local_t * local)
 {
 	return free_region(local);
 }
+

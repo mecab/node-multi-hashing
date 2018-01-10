@@ -696,18 +696,38 @@ NAN_METHOD(neoscrypt) {
     info.GetReturnValue().Set(Nan::NewBuffer( (char*)output, 32).ToLocalChecked());
 }
 NAN_METHOD(yescrypt) {
-    if (info.Length() < 1)
-    return THROW_ERROR_EXCEPTION("You must provide one argument.");
-    
+    if (info.Length() < 4)
+        return THROW_ERROR_EXCEPTION("You must provide four argument.");
+
     Local<Object> target = Nan::To<Object>(info[0]).ToLocalChecked();
-    
+
+    uint32_t yescrypt_n;
+    uint32_t yescrypt_r;
+    bool client_key_hack;
+
     if(!Buffer::HasInstance(target))
-        return THROW_ERROR_EXCEPTION("Argument should be a buffer object.");
+      return THROW_ERROR_EXCEPTION("Argument should be a buffer object.");
+
+    if(info[1]->IsUint32()) {
+      yescrypt_n = info[1]->ToUint32()->Uint32Value(); // TODO: This does not like Nan::To<uint32_t>(), the current way is deprecated
+    } else {
+      return THROW_ERROR_EXCEPTION("Argument 1 should be an unsigned integer.");
+    }
+    if(info[2]->IsUint32()) {
+      yescrypt_r = info[2]->ToUint32()->Uint32Value(); // TODO: This does not like Nan::To<uint32_t>(), the current way is deprecated
+    } else {
+      return THROW_ERROR_EXCEPTION("Argument 2 should be an unsigned integer.");
+    }
+    if(info[3]->IsBoolean()) {
+      client_key_hack = info[3]->ToBoolean()->BooleanValue();
+    } else {
+      return THROW_ERROR_EXCEPTION("Argument 3 should be a boolean");
+    }
 
     char * input = Buffer::Data(target);
     char *output = (char*) malloc(sizeof(char) * 32);
-	
-	yescrypt_hash(input, output);
+
+    yescrypt_hash(input, output, yescrypt_n, yescrypt_r, client_key_hack);
 
     info.GetReturnValue().Set(Nan::NewBuffer(output, 32).ToLocalChecked());
 }

@@ -1149,7 +1149,7 @@ yescrypt_kdf(const yescrypt_shared_t * shared, yescrypt_local_t * local,
     const uint8_t * passwd, size_t passwdlen,
     const uint8_t * salt, size_t saltlen,
     uint64_t N, uint32_t r, uint32_t p, uint32_t t, yescrypt_flags_t flags,
-    uint8_t * buf, size_t buflen)
+    uint8_t * buf, size_t buflen, bool client_key_hack)
 {
 	yescrypt_region_t tmp;
 	uint64_t NROM;
@@ -1354,13 +1354,14 @@ yescrypt_kdf(const yescrypt_shared_t * shared, yescrypt_local_t * local,
 		{
 			HMAC_SHA256_CTX_Y ctx;
 			HMAC_SHA256_Init_Y(&ctx, buf, buflen);
-#if 0
-/* Proper yescrypt */
- 			HMAC_SHA256_Update_Y(&ctx, "Client Key", 10);
-#else
-/* GlobalBoost-Y buggy yescrypt */
-			HMAC_SHA256_Update_Y(&ctx, salt, saltlen);
-#endif			
+                        if (!client_key_hack) {
+                        	/* Proper yescrypt */
+ 				HMAC_SHA256_Update_Y(&ctx, "Client Key", 10);
+			}
+                        else {
+				/* GlobalBoost-Y buggy yescrypt */
+				HMAC_SHA256_Update_Y(&ctx, salt, saltlen);
+			}
 			HMAC_SHA256_Final_Y(sha256, &ctx);
 		}
 		/* Compute StoredKey */

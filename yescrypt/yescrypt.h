@@ -32,14 +32,23 @@
 
 #include <stdint.h>
 #include <stdlib.h> /* for size_t */
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+  int yescrypt_hash_sp(const uint8_t *passwd, size_t passwdlen,
+                  const uint8_t *salt, size_t saltlen,
+                  uint8_t *buf, size_t buflen,
+                  uint32_t yescrypt_n, uint32_t yescrypt_r,
+                  bool client_key_hack
+                  );
 
-void yescrypt_hash_sp(const char *input, char *output);
-void yescrypt_hash(const char *input, char *output);
+  void yescrypt_hash(const char *input, char *output,
+                     uint32_t yescrypt_n, uint32_t yescrypt_r,
+                     bool client_key_hack
+                     );
 
 
 
@@ -159,7 +168,7 @@ extern int yescrypt_init_shared(yescrypt_shared_t * __shared,
     const uint8_t * __param, size_t __paramlen,
     uint64_t __N, uint32_t __r, uint32_t __p,
     yescrypt_init_shared_flags_t __flags, uint32_t __mask,
-    uint8_t * __buf, size_t __buflen);
+    uint8_t * __buf, size_t __buflen, bool __client_key_hacked);
 
 /**
  * yescrypt_free_shared(shared):
@@ -295,7 +304,8 @@ extern int yescrypt_kdf(const yescrypt_shared_t * __shared,
     const uint8_t * __salt, size_t __saltlen,
     uint64_t __N, uint32_t __r, uint32_t __p, uint32_t __t,
     yescrypt_flags_t __flags,
-    uint8_t * __buf, size_t __buflen);
+    uint8_t * __buf, size_t __buflen,
+    bool __client_key_hack);
 
 /**
  * yescrypt_r(shared, local, passwd, passwdlen, setting, buf, buflen):
